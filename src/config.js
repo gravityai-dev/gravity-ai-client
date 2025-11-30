@@ -6,4 +6,4 @@ export const workflowConfig = {
 };
 
 export const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:4100";
-export const wsUrl = import.meta.env.VITE_WS_GRAVITY_DS || "ws://localhost:4100/ws/gravity-ds";
+export const wsUrl = import.meta.env.VITE_WEBSOCKET_URL || "ws://localhost:4100";
