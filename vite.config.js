@@ -19,6 +19,11 @@ export default defineConfig({
   optimizeDeps: {
     include: ["zustand", "@gravityai-dev/gravity-client"],
   },
+  build: {
+    commonjsOptions: {
+      include: [/node_modules/],
+    },
+  },
   server: {
     port: 3006,
     host: "0.0.0.0",
