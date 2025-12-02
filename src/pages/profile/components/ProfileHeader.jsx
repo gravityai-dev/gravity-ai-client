@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import {
-  MapPin,
-  Zap,
-  Mail,
-  Target,
-} from "lucide-react";
+import { MapPin, Zap, Mail, Target } from "lucide-react";
 import CryptoJS from "crypto-js";
 
 export function ProfileHeader({ profileData, userId, insights }) {
@@ -13,7 +8,8 @@ export function ProfileHeader({ profileData, userId, insights }) {
   const userName = profileData?.profile?.name || profileData?.profile?.firstName || "User Profile";
   const userFirstName = profileData?.profile?.firstName;
   const userEmail = profileData?.profile?.email;
-  const userLocation = profileData?.profile?.attributes?.location || profileData?.businessProfile?.targetMarket || "Abu Dhabi";
+  const userLocation =
+    profileData?.profile?.attributes?.location || profileData?.businessProfile?.targetMarket || "Abu Dhabi";
 
   // Generate Gravatar URL from email
   const getGravatarUrl = (email, size = 128) => {
@@ -159,7 +155,7 @@ export function ProfileHeader({ profileData, userId, insights }) {
                     <MapPin className="w-4 h-4 text-gray-400" />
                     <span className="text-sm">{userLocation}</span>
                   </div>
-                  
+
                   {userEmail && (
                     <div className="flex items-center gap-3 text-gray-600">
                       <Mail className="w-4 h-4 text-gray-400" />
@@ -198,38 +194,34 @@ export function ProfileHeader({ profileData, userId, insights }) {
             className="lg:col-span-1 space-y-4"
           >
             {/* Current Needs */}
-            {(profileData?.insights?.needs?.immediate || profileData?.insights?.needs?.upcoming || profileData?.insights?.needs?.latent) && (
+            {(profileData?.insights?.needs?.immediate ||
+              profileData?.insights?.needs?.upcoming ||
+              profileData?.insights?.needs?.latent) && (
               <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6">
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4 flex items-center gap-2">
                   <Target className="w-3.5 h-3.5" />
                   Current Needs
                 </h3>
-                
+
                 <div className="space-y-4">
                   {profileData.insights.needs.immediate && (
                     <div>
                       <p className="text-xs font-medium text-gray-500 mb-1">Immediate</p>
-                      <p className="text-sm text-gray-900 leading-relaxed">
-                        {profileData.insights.needs.immediate}
-                      </p>
+                      <p className="text-sm text-gray-900 leading-relaxed">{profileData.insights.needs.immediate}</p>
                     </div>
                   )}
-                  
+
                   {profileData.insights.needs.upcoming && (
                     <div>
                       <p className="text-xs font-medium text-gray-500 mb-1">Upcoming</p>
-                      <p className="text-sm text-gray-700 leading-relaxed">
-                        {profileData.insights.needs.upcoming}
-                      </p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{profileData.insights.needs.upcoming}</p>
                     </div>
                   )}
-                  
+
                   {profileData.insights.needs.latent && (
                     <div>
                       <p className="text-xs font-medium text-gray-500 mb-1">Future</p>
-                      <p className="text-sm text-gray-600 leading-relaxed">
-                        {profileData.insights.needs.latent}
-                      </p>
+                      <p className="text-sm text-gray-600 leading-relaxed">{profileData.insights.needs.latent}</p>
                     </div>
                   )}
                 </div>

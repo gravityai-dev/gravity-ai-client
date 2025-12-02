@@ -1,95 +1,149 @@
-import { createElement as h } from "react";
+import { createElement as h, useMemo } from "react";
 
 /**
- * Service Details - Premium service display
+ * Parse markdown into clean sections
+ */
+function parseMarkdownSections(text) {
+  if (!text) return [];
+
+  const sections = [];
+  const parts = text.split(/^## /gm);
+
+  parts.forEach((part, idx) => {
+    if (!part.trim()) return;
+
+    if (idx === 0 && !text.startsWith("## ")) {
+      sections.push({ title: null, content: part.trim() });
+    } else {
+      const lines = part.split("\n");
+      const title = lines[0].trim();
+      const content = lines.slice(1).join("\n").trim();
+      if (title) sections.push({ title, content });
+    }
+  });
+
+  return sections;
+}
+
+/**
+ * Service Details - Clean, editorial design
  */
 export function ServiceDetails({ service, onBookClick, showButton = true, compact = false }) {
   if (!service) return null;
 
-  // Extract data
   const title = service.title;
-  const keyNeed = service.key_need;
-  const image = service.metadata?.images?.[0];
+  const description = service.description || service.metadata?.shortDescription;
+  const introParagraph = service.metadata?.introParagraph;
+  const images = service.metadata?.images || [];
+  const heroImage = images[0];
   const bodyCopy = service.metadata?.bodyCopy;
   const callToAction = service.metadata?.callToAction || "Book Now";
-  const needs = service.needs || [];
+
+  const sections = useMemo(() => parseMarkdownSections(bodyCopy), [bodyCopy]);
 
   return h(
     "div",
-    { className: "h-full flex flex-col bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950" },
+    { className: "h-full flex flex-col bg-white dark:bg-black" },
 
-    // Hero Image with gradient overlay
-    image &&
-      h(
-        "div",
-        { className: "relative w-full h-72 flex-shrink-0" },
-        h("img", {
-          src: image,
-          alt: title || "Service",
-          className: "w-full h-full object-cover",
-        }),
-        // Gradient overlay
-        h("div", { className: "absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" }),
-        // Title overlay on image
-        h(
-          "div",
-          { className: "absolute bottom-0 left-0 right-0 p-8" },
-          h("h2", { className: "text-3xl font-bold text-white drop-shadow-lg leading-tight" }, title)
-        )
-      ),
-
-    // Content
+    // Scrollable content
     h(
       "div",
-      { className: "flex-1 overflow-y-auto px-8 py-8 space-y-6" },
+      { className: "flex-1 overflow-y-auto" },
 
-      // Key Need badge
-      keyNeed &&
+      // Hero - full bleed image
+      heroImage &&
         h(
           "div",
-          { className: "inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/30 rounded-full" },
-          h("div", { className: "w-2 h-2 bg-emerald-500 rounded-full" }),
-          h("span", { className: "text-sm font-medium text-emerald-700 dark:text-emerald-300" }, keyNeed)
+          { className: "relative w-full aspect-[16/9]" },
+          h("img", {
+            src: heroImage,
+            alt: title || "Service",
+            className: "w-full h-full object-cover",
+          })
         ),
 
-      // Needs as elegant pills
-      needs.length > 0 &&
+      // Content
+      h(
+        "div",
+        { className: "px-6 pt-8 pb-32" },
+
+        // Title
         h(
-          "div",
-          { className: "flex flex-wrap gap-2" },
-          needs.slice(0, 5).map((need, idx) =>
-            h(
-              "span",
-              {
-                key: idx,
-                className:
-                  "px-4 py-2 text-sm font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-full shadow-sm border border-gray-100 dark:border-gray-700",
-              },
-              need
+          "h1",
+          {
+            className: "text-[24px] font-semibold text-gray-900 dark:text-white tracking-tight leading-tight",
+          },
+          title
+        ),
+
+        // Description
+        description &&
+          h(
+            "p",
+            {
+              className: "mt-3 text-[15px] text-gray-500 dark:text-gray-400 leading-relaxed",
+            },
+            description
+          ),
+
+        // Divider
+        h("div", { className: "mt-8 mb-8 h-px bg-gray-200 dark:bg-gray-800" }),
+
+        // Intro
+        introParagraph &&
+          h(
+            "p",
+            {
+              className: "text-[15px] text-gray-900 dark:text-white leading-[1.6] font-medium",
+            },
+            introParagraph
+          ),
+
+        // Sections
+        sections.length > 0 &&
+          h(
+            "div",
+            { className: "mt-8 space-y-8" },
+            sections.map((section, idx) =>
+              h(
+                "div",
+                { key: idx },
+                section.title &&
+                  h(
+                    "h2",
+                    {
+                      className:
+                        "text-[11px] font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide mb-3",
+                    },
+                    section.title
+                  ),
+                h(
+                  "p",
+                  {
+                    className: "text-[15px] text-gray-700 dark:text-gray-300 leading-[1.6]",
+                  },
+                  section.content
+                )
+              )
             )
           )
-        ),
-
-      // Body Copy with premium typography
-      bodyCopy &&
-        h("div", {
-          className:
-            "prose prose-lg dark:prose-invert max-w-none prose-headings:text-gray-900 dark:prose-headings:text-white prose-headings:font-semibold prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-p:leading-relaxed prose-li:text-gray-600 dark:prose-li:text-gray-400",
-          dangerouslySetInnerHTML: { __html: bodyCopy },
-        })
+      )
     ),
 
-    // CTA Button - Premium style
+    // Fixed CTA - minimal
     showButton &&
       h(
         "div",
-        { className: "flex-shrink-0 p-8 bg-white dark:bg-gray-900 border-t border-gray-100 dark:border-gray-800" },
+        {
+          className:
+            "absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-white via-white dark:from-black dark:via-black to-transparent pt-16",
+        },
         h(
           "button",
           {
             onClick: onBookClick,
             className:
-              "w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold text-lg py-4 px-8 rounded-2xl transition-all duration-300 shadow-lg shadow-emerald-500/25 hover:shadow-xl hover:shadow-emerald-500/30 hover:-translate-y-0.5",
+              "w-full bg-blue-600 hover:bg-blue-700 text-white font-medium text-[15px] py-3.5 rounded-xl transition-all active:scale-[0.98]",
           },
           callToAction
         )

@@ -1,30 +1,56 @@
-import { createElement as h, useState, useEffect, useCallback, memo } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { X } from "lucide-react";
-import { ServiceDetails, BookingForm } from "./ServiceDetails";
+import { ServiceDetails } from "./ServiceDetails";
+import { BookingEngine } from "./BookingEngine";
 
 /**
- * ServiceSidebar - Slide-in sidebar with dual-width modes
+ * ServiceSidebar - Responsive sidebar
  *
- * Modes:
- * - compact: 45vw - Service details only
- * - expanded: 95vw - Service details (left) + Booking form (right)
+ * Desktop (>=768px): Side-by-side panels when booking is active
+ * Mobile (<768px): Stacked sliding panels
  */
 export function ServiceSidebar({ isOpen, service, onClose, onBook }) {
-  const [mode, setMode] = useState("compact");
+  const [showBooking, setShowBooking] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  // Reset to compact when sidebar opens
+  // Handle open/close with animation
   useEffect(() => {
-    if (isOpen) setMode("compact");
-  }, [isOpen, service?.id]);
+    if (isOpen && service) {
+      setIsVisible(true);
+      setShowBooking(false);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setIsAnimating(true));
+      });
+    } else {
+      setIsAnimating(false);
+      const timer = setTimeout(() => {
+        setIsVisible(false);
+        setShowBooking(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, service]);
 
   const handleBookClick = useCallback(() => {
-    setMode("expanded");
+    setShowBooking(true);
     onBook?.(service);
   }, [service, onBook]);
 
+  const handleBackFromBooking = useCallback(() => {
+    setShowBooking(false);
+  }, []);
+
+  const handleBookingComplete = useCallback((bookingData) => {
+    console.log("[ServiceSidebar] Booking complete:", bookingData);
+  }, []);
+
   const handleClose = useCallback(() => {
-    setMode("compact");
-    onClose?.();
+    setIsAnimating(false);
+    setTimeout(() => {
+      setShowBooking(false);
+      onClose?.();
+    }, 300);
   }, [onClose]);
 
   // Escape key to close
@@ -34,65 +60,58 @@ export function ServiceSidebar({ isOpen, service, onClose, onBook }) {
     return () => document.removeEventListener("keydown", onEscape);
   }, [isOpen, handleClose]);
 
-  if (!isOpen || !service) return null;
+  if (!isVisible) return null;
 
-  return h(
-    "div",
-    { className: "fixed inset-0 z-50 flex justify-end" },
+  // Desktop: side-by-side (480px + 480px = 960px when booking shown)
+  // Mobile: single panel (90vw max)
+  const panelWidth = showBooking ? "min(960px, 95vw)" : "min(480px, 90vw)";
 
-    // Backdrop
-    h("div", {
-      className: "absolute inset-0 bg-black/30 transition-opacity duration-300",
-      onClick: handleClose,
-    }),
+  return (
+    <div className="fixed inset-0 z-50 flex justify-end overflow-hidden">
+      {/* Backdrop */}
+      <div
+        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${
+          isAnimating ? "opacity-100" : "opacity-0"
+        }`}
+        onClick={handleClose}
+      />
 
-    // Panel
-    h(
-      "div",
-      {
-        className:
-          "relative bg-white dark:bg-gray-900 shadow-2xl transition-all duration-300 ease-out h-full overflow-hidden",
-        style: { width: mode === "expanded" ? "95vw" : "45vw" },
-      },
+      {/* Panel container */}
+      <div
+        className="relative h-full transition-all duration-300 ease-out overflow-hidden"
+        style={{ width: panelWidth, transform: isAnimating ? "translateX(0)" : "translateX(100%)" }}
+      >
+        {/* Close button */}
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 z-20 p-2 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 transition-colors"
+        >
+          <X className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+        </button>
 
-      // Close button
-      h(
-        "button",
-        {
-          onClick: handleClose,
-          className:
-            "absolute top-4 right-4 z-10 p-2 rounded-full bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors",
-        },
-        h(X, { className: "w-5 h-5 text-gray-600 dark:text-gray-400" })
-      ),
+        <div className="flex h-full">
+          {/* Left panel: Service Details */}
+          <div
+            className={`h-full bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 overflow-hidden transition-all duration-300 ease-out ${
+              showBooking ? "hidden md:block md:w-[480px] flex-shrink-0" : "w-full"
+            }`}
+          >
+            <ServiceDetails service={service} onBookClick={handleBookClick} showButton={!showBooking} />
+          </div>
 
-      // Content
-      mode === "expanded"
-        ? h(ExpandedLayout, { service })
-        : h(ServiceDetails, { service, onBookClick: handleBookClick })
-    )
-  );
-}
-
-/** Expanded: Service (left) + Booking (right) */
-function ExpandedLayout({ service }) {
-  return h(
-    "div",
-    { className: "flex h-full w-full overflow-hidden" },
-
-    // Left - Service details
-    h(
-      "div",
-      { className: "w-[500px] flex-shrink-0 border-r border-gray-200 dark:border-gray-700 overflow-y-auto" },
-      h(ServiceDetails, { service, showButton: false, compact: true })
-    ),
-
-    // Right - Booking form
-    h(
-      "div",
-      { className: "flex-1 flex flex-col items-center bg-gray-50 dark:bg-gray-900 overflow-y-auto p-8" },
-      h("div", { className: "w-full max-w-2xl" }, h(BookingForm, { service }))
-    )
+          {/* Right panel: Booking Engine */}
+          {showBooking && (
+            <div className="h-full bg-white dark:bg-black flex-1 overflow-hidden">
+              <BookingEngine
+                service={service}
+                onBack={handleBackFromBooking}
+                onBookingComplete={handleBookingComplete}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
