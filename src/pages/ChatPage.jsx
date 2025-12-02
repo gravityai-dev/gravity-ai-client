@@ -1,13 +1,16 @@
 import { createElement as h } from "react";
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { GravityClient, useUser, useGravityAuth } from "@gravityai-dev/gravity-client";
 import TopMenu from "../components/TopMenu";
 import { LoginPage } from "./LoginPage";
+import { ServiceSidebar } from "../components/ServiceSidebar";
+import { useServiceSidebar } from "../hooks/useServiceSidebar";
 import { workflowConfig, apiUrl, wsUrl } from "../config";
 
 export function ChatPage() {
   const { userId, loading } = useUser();
   const { isAuthenticated, isLoading: authLoading, getAccessToken } = useGravityAuth();
+  const { sidebarOpen, activeService, closeSidebar, handleBook } = useServiceSidebar();
 
   const session = useMemo(
     () => ({
@@ -21,10 +24,6 @@ export function ChatPage() {
 
   const config = useMemo(() => ({ apiUrl, wsUrl, getAccessToken }), [getAccessToken]);
 
-  const handleReady = useCallback(() => {
-    console.log("[App] Gravity client ready!");
-  }, []);
-
   if (loading || authLoading) {
     return h("div", { className: "h-screen flex items-center justify-center" }, "Loading...");
   }
@@ -37,6 +36,12 @@ export function ChatPage() {
     "div",
     { className: "h-screen flex flex-col overflow-hidden relative" },
     h(TopMenu),
-    h(GravityClient, { config, session, onReady: handleReady })
+    h(GravityClient, { config, session }),
+    h(ServiceSidebar, {
+      isOpen: sidebarOpen,
+      service: activeService,
+      onClose: closeSidebar,
+      onBook: handleBook,
+    })
   );
 }
