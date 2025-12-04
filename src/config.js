@@ -1,8 +1,8 @@
 // App configuration
 
 export const workflowConfig = {
-  workflowId: "wf-htmn4a",
-  targetTriggerNode: "inputtrigger8",
+  workflowId: "wf-r4jzo7",
+  targetTriggerNode: "inputtrigger1",
 };
 
 export const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:4100";

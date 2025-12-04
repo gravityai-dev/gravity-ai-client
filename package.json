@@ -1,13 +1,17 @@
 {
-  "name": "@gravityai-dev/gravity-ai-client",
-  "version": "0.8.6",
+  "name": "@gravityai-dev/sab",
+  "version": "0.1.0",
   "type": "module",
   "engines": {
     "node": ">=20.15.0",
     "npm": ">=10.0.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gravityai-dev/gravity-SAB.git"
+  },
   "scripts": {
-    "dev": "vite --host 0.0.0.0 --port 3006 --no-open",
+    "dev": "vite --host 0.0.0.0 --port 3007 --no-open",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -15,7 +19,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@gravityai-dev/gravity-client": "^0.3.4",
+    "@gravityai-dev/gravity-client": "file:../../gravity-client",
     "crypto-js": "^4.2.0",
     "d3": "^7.9.0",
     "framer-motion": "^12.23.24",
